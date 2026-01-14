@@ -1,10 +1,14 @@
 // imports
 const express = require('express');
-
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 // internal imports
 const connectDB = require('./config/db');
 const User = require ('./models/User');
+
+// dotenv
+require('dotenv').config();
 
 
 //create express app
@@ -17,24 +21,7 @@ connectDB();
 
 
 
-//test route
-// app.get('/', (req , res ) => {
-//     res.send('its live now');
-// })
-// app.post('/test',(req , res) => {
-
-//     const {name , email , password} = req.body;
-//     console.log(req.body)
-//     if(!name||!email||!password){
-//         return res.status(400).json({
-//             message:'all fields required'
-//         })
-//     }else{
-//         res.status(201).json({
-//             message:'user data accepted'
-//         })
-//     }
-// });
+// register route
 
 app.post('/users', async (req , res ) => {
 // Input validation
@@ -48,7 +35,7 @@ app.post('/users', async (req , res ) => {
 // Proper status codes
     // get the details and destructured
     const {name , email , password} = req.body;
-    console.log(req.body)
+    console.log('done')
     // error handling with try catch block (remember)
     try {
      // validate input
@@ -66,13 +53,13 @@ app.post('/users', async (req , res ) => {
                 message:'User already Registerd'
             });
         }
-
+    const hashedPassword = await bcrypt.hash(password , 10);
 
     // create user
         const user = new User({
             name,
             email,
-            password
+            password: hashedPassword
         });
     // save to db
         await user.save();
@@ -93,7 +80,60 @@ app.post('/users', async (req , res ) => {
 
 
 
-})
+});
+
+// login setup with jwt token 
+app.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Validate
+    if (!email || !password) {
+      return res.status(400).json({
+        message: 'Email and password required'
+      });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 2. Find by EMAIL ONLY
+    const user = await User.findOne({ email: cleanEmail });
+
+    if (!user) {
+      return res.status(401).json({
+        message: 'Invalid credentials'
+      });
+    }
+
+    // 3. Compare password
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Invalid credentials'
+      });
+    }
+
+    // 4. Create token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({
+      message: 'Login successful',
+      token
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Server error'
+    });
+  }
+});
+
 
 
 
