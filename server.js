@@ -2,10 +2,17 @@
 const express = require('express');
 
 
+// internal imports
+const connectDB = require('./config/db');
+
+
 //create express app
 const app = express();
 // to read json body
 app.use(express.json());
+
+// starting mongodb
+connectDB();
 
 
 
