@@ -4,6 +4,7 @@ const express = require('express');
 
 // internal imports
 const connectDB = require('./config/db');
+const User = require ('./models/User');
 
 
 //create express app
@@ -47,6 +48,7 @@ app.post('/users', async (req , res ) => {
 // Proper status codes
     // get the details and destructured
     const {name , email , password} = req.body;
+    console.log(req.body)
     // error handling with try catch block (remember)
     try {
      // validate input
@@ -81,8 +83,10 @@ app.post('/users', async (req , res ) => {
         
     //if any server error  
     } catch (error) {
+        console.error(error);
         res.status(500).json({
-            message:'server error'
+            message:'server error',
+            error:error.message
         });
     }
 
