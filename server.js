@@ -4,12 +4,28 @@ const express = require('express');
 
 //create express app
 const app = express();
+// to read json body
+app.use(express.json());
 
 
 
 //test route
 app.get('/', (req , res ) => {
     res.send('its live now');
+})
+app.post('/test',(req , res) => {
+
+    const {name , email , password} = req.body;
+    console.log(req.body)
+    if(!name||!email||!password){
+        return res.status(400).json({
+            message:'all fields required'
+        })
+    }else{
+        res.status(201).json({
+            message:'user data accepted'
+        })
+    }
 })
 
 
