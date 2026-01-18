@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt');
 // internal imports
 const connectDB = require('./config/db');
 const User = require ('./models/User');
+const authMiddleware = require('./middleware/auth');
+const authmiddleware = require('./middleware/auth');
 
 // dotenv
 require('dotenv').config();
@@ -134,6 +136,13 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// authmiddleware check
+app.get('/profile', authmiddleware , (req , res) => {
+  res.json({
+    message: 'Protected route accessed',
+    user: req.user
+  })
+})
 
 
 
